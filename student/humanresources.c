@@ -14,12 +14,30 @@ int app_count;
 * Returns ERROR if the array is full or the application cannot be added
 */
 int addApplication(const char *first_name, const char *last_name, int age, int project_count, int has_referral){
-    UNUSED(first_name);
-    UNUSED(last_name);
-    UNUSED(age);
-    UNUSED(project_count);
-    UNUSED(has_referral);
-    return INCOMPLETE;
+    if (MAX_APPLICATIONS_LEN <= app_count) {
+        return ERROR;
+    }
+    
+    struct Application *pointer = &applications[app_count];
+
+    strcpy(pointer->first_name, first_name);
+    strcpy(pointer->last_name, last_name);
+
+    pointer->age = age;
+    pointer->project_count = project_count;
+    pointer-> has_referral = has_referral;
+
+    struct Experience *expPointer;
+
+    for (int i = 0; i <= MAX_EXPER_LEN; i++) {
+        strcpy(expPointer->company_name, '\0');
+        expPointer->start_year = 0;
+        expPointer->end_year = 0;
+        //expPointer-
+
+    }
+
+    return SUCCESS;
 }
 
 /*
