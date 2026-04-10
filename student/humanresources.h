@@ -23,11 +23,11 @@
 // Students should add any structs they make here
 
 enum ExperienceType {
-    INTERN,
-    ENGINEER_JUNIOR,
-    ENGINEER_SENIOR,
-    MANAGER,
-    MANAGER_SENIOR,
+    INTERN, //0
+    ENGINEER_JUNIOR, //1
+    ENGINEER_SENIOR, //2
+    MANAGER, //3
+    MANAGER_SENIOR, //4
     CEO
 };
 

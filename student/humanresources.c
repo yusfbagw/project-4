@@ -109,7 +109,8 @@ int calculateRating(struct Application *app) {
     }
     if (projectCount == 0) {
         rating -= 5;
-    } else {
+    } 
+    else {
         rating += projectCount * 5;
     }
     if (rating < 0) {
@@ -135,21 +136,30 @@ int isOverqualified(struct Application *app, enum ExperienceType role) {
         return ERROR;
     }
     
-    struct Experience *pointer;
+    struct Experience *pointer = NULL;
+    int recentYear = -256;
+    
     
     for (int i = 0; i < MAX_EXPER_LEN; i++) {
-        pointer = &app->experiences[i];
-        role = &pointer;
+        if (app->experiences[i].start_year == 0) {
+            continue; //Making sure that we don't have any garbage data
+        }
 
-        
+        if (app->experiences[i].end_year > recentYear) {
+            recentYear = app->experiences[i].end_year;
+            pointer = &app->experiences[i];
+        }
     }
-
-    if (pointer->experience_type == CEO) {
+    if (pointer == NULL) {
+        return ERROR;
+    }
+    
+    if (pointer->experience_type > role) {
         return SUCCESS;
     }
     else {
         return FAILURE;
-        }
+    }
 }
 
 /*
@@ -161,10 +171,26 @@ int isOverqualified(struct Application *app, enum ExperienceType role) {
 * Otherwise, they should be accepted
 */
 int makeDecision(struct Application *app, int min_rating, enum ExperienceType role) {
-    UNUSED(app);
-    UNUSED(min_rating);
-    UNUSED(role);
-    return INCOMPLETE;
+    if (app == NULL) {
+        return ERROR;
+    }
+
+    int rating = calculateRating(app);
+    int isOverqual = isOverqualified(app, role);
+    
+    if (isOverqual == ERROR) {
+        return ERROR;
+    }
+
+    if (rating < min_rating) {
+        return FAILURE;
+    }
+    else if (isOverqual == SUCCESS) {
+        return FAILURE;
+    }
+    else {
+        return SUCCESS;
+    }
 }
 
 /*
@@ -177,9 +203,7 @@ int addExperience(const char *first_name, const char *last_name, const char *com
     struct Experience *pointer;
     struct Application *app; // need to init app
 
-    if () {
-
-    }
+    
     if (experience_type < INTERN || experience_type > CEO) {
         return ERROR;
     }
@@ -190,7 +214,7 @@ int addExperience(const char *first_name, const char *last_name, const char *com
         char lastName = app->last_name[i];
         
         if (firstName == *first_name && lastName == *last_name) {
-            app->experiences[i] = experience_type;
+            //app->experiences[i] == &experience_type;
         }
         else {
             return FAILURE;
@@ -205,7 +229,20 @@ int addExperience(const char *first_name, const char *last_name, const char *com
 * Return SUCCESS if there are duplicates, and FAILURE if there are no duplicates
 */ 
 int findDuplicates(void){
-    return INCOMPLETE;
+    int aha = FAILURE;
+    for (int i = 0; i < app_count; i++) {
+        for (int j = i + 1; j < app_count; j++) {
+            if (strcmp(applications[i].first_name, applications[j].first_name) == 0 && strcmp(applications[i].last_name, applications[j].last_name) == 0 && applications[i].age == applications[j].age) {
+                aha = SUCCESS;
+            }
+        }
+    }
+    if (aha == SUCCESS) {
+        return SUCCESS;
+    }
+    else {
+        return FAILURE;
+    }
 }
 
 /*
@@ -213,9 +250,25 @@ int findDuplicates(void){
 * Return SUCCESS if referral was given successfully, FAILURE if no such applicant exists, and ERROR if input is invalid
 */
 int giveReferral(const char *first_name, const char *last_name) {
-    UNUSED(first_name);
-    UNUSED(last_name);
-    return INCOMPLETE;
+    
+    if (first_name == NULL || last_name == NULL) {
+        return ERROR;
+    }
+    
+    int wasGiven = 0;
+    for (int i = 0; i < app_count; i++) {
+        if (strcmp(applications[i].first_name, first_name) == 0 && strcmp(applications[i].last_name, last_name) == 0) {
+            applications[i].has_referral = 1;
+            wasGiven = 1;
+            break;
+        }
+    }
+    if (wasGiven == 1) {
+        return SUCCESS;
+    }
+    else {
+        return FAILURE;
+    }
 }
 
 /*
@@ -229,7 +282,45 @@ int giveReferral(const char *first_name, const char *last_name) {
 * Update the application count accordingly
 */
 int massLayoffs(void) { 
-    return INCOMPLETE;
+    for (int i = 0; i < app_count; i++) {
+        int recentYear = -256;
+        enum ExperienceType mostRecentType = INTERN;
+        int aha = 0;
+        for (int j = 0; j < MAX_EXPER_LEN; j++) {
+        
+        if (applications[i].experiences[j].start_year == 0) {
+            continue; //Making sure that we don't have any garbage data
+        }
+
+        if (applications[i].experiences[j].end_year > recentYear) {
+            recentYear = applications[i].experiences[j].end_year;
+            mostRecentType = applications[i].experiences[j].experience_type;
+            aha = 1;
+        }
+
+    }
+    if (aha == 1 && mostRecentType == INTERN) {
+            applications[i] = applications[app_count - 1];
+            app_count--;
+            i--;
+    }
+}
+     
+    for (int i = 0; i < app_count; i++) {
+        if (applications[i].project_count < 3) {
+             applications[i] = applications[app_count - 1];
+            app_count--;
+            i--;
+        }
+    }
+    for (int i = 0; i < app_count; i++) {
+        if (applications[i].first_name[0] == 'J' || applications[i].first_name[0] == 'T') {
+        applications[i] = applications[app_count - 1];
+        app_count--;
+        i--;
+        } 
+    }
+    return SUCCESS;
 }
 
 /*
@@ -241,9 +332,28 @@ int massLayoffs(void) {
 * Use the format "FirstName LastName" for each applicant in the results array
 */
 int searchByCompany(const char *company, char results[][MAX_APPLICANT_NAME_LEN * 2 + 2]) {
-    UNUSED(company);
-    UNUSED(results);
-    return INCOMPLETE;
+    //Ex. 2D Array = char array[2][3] = {{'Bob', 'Baker'}, {'Henry', 'Cavill'}, {Jimmy} {McGill}}
+    int numPeopleWorked = 0;
+    
+    if (company == NULL || results == NULL) {
+        return ERROR;
+    }
+
+    for (int i = 0; i < app_count; i++) {
+        for (int j = 0; j < MAX_EXPER_LEN; j++) {
+            if (applications[i].experiences[j].start_year == 0) {
+                continue;  //Making sure that we don't have any garbage data
+            }
+            if (strcmp(applications[i].experiences[j].company_name, company) == 0) {
+                strcpy(results[numPeopleWorked], applications[i].first_name);
+                strcat(results[numPeopleWorked], " ");
+                strcat(results[numPeopleWorked], applications[i].last_name);
+                numPeopleWorked++;
+                break;
+            }
+        }
+    }
+    return numPeopleWorked;
 }
 
 /*
@@ -269,7 +379,9 @@ int searchByResumeGap(char results[][MAX_APPLICANT_NAME_LEN * 2 + 2]) {
 * Return SUCCESS upon completion
 */
 int sortByRating(void) {
-    return INCOMPLETE;
+    calculateRating(applications);
+    
+    return SUCCESS;
 }
 
 /*
