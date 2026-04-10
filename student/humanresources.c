@@ -14,10 +14,28 @@ int app_count;
 * Returns ERROR if the array is full or the application cannot be added
 */
 int addApplication(const char *first_name, const char *last_name, int age, int project_count, int has_referral){
+    if (first_name == NULL || last_name == NULL) {
+        return ERROR;
+    }
+    if (strlen(first_name) == 0 || strlen(last_name) == 0) {
+        return ERROR;
+    }
+
+    if (age < 0 || project_count < 0) {
+        return ERROR;
+    }
+
+    if (has_referral > 1 || has_referral < 0){
+        return ERROR;
+    }
+    if (strlen(first_name) >= MAX_APPLICANT_NAME_LEN ||  strlen(last_name) >= MAX_APPLICANT_NAME_LEN) {
+        return ERROR;
+    }
+
     if (MAX_APPLICATIONS_LEN <= app_count) {
         return ERROR;
     }
-    
+
     struct Application *pointer = &applications[app_count];
 
     strcpy(pointer->first_name, first_name);
@@ -25,18 +43,17 @@ int addApplication(const char *first_name, const char *last_name, int age, int p
 
     pointer->age = age;
     pointer->project_count = project_count;
-    pointer-> has_referral = has_referral;
+    pointer->has_referral = has_referral;
 
-    struct Experience *expPointer;
-
-    for (int i = 0; i <= MAX_EXPER_LEN; i++) {
-        strcpy(expPointer->company_name, '\0');
-        expPointer->start_year = 0;
-        expPointer->end_year = 0;
-        //expPointer-
-
+    for (int i = 0; i < MAX_EXPER_LEN; i++) {
+        
+        pointer->experiences[i].company_name[0] = '\0';
+        pointer->experiences[i].start_year = 0;
+        pointer->experiences[i].end_year = 0;
+        pointer->experiences[i].experience_type = INTERN;
     }
-
+    
+    app_count++;
     return SUCCESS;
 }
 
@@ -53,8 +70,54 @@ int addApplication(const char *first_name, const char *last_name, int age, int p
 * Make sure that there is no negative rating, if the rating is negative, return 0
 */
 int calculateRating(struct Application *app) {
-    UNUSED(app);
-    return INCOMPLETE;
+    
+    if (app == NULL) {
+        return ERROR;
+    }
+
+    int yearsWorked;
+    int experienceVal;
+    int hasRefferal;
+    int endYear;
+    int startYear;
+    int projectCount;
+    int rating = 0;
+
+    struct Experience *pointer;
+
+    hasRefferal = app->has_referral;
+    projectCount = app->project_count;
+    
+    for (int i = 0; i < MAX_EXPER_LEN; i++) {
+        pointer = &app->experiences[i];
+
+        if (pointer->company_name[0] == '\0') {
+            continue;
+        }
+
+        endYear = pointer->end_year;
+        startYear = pointer->start_year;
+        yearsWorked = (endYear - startYear);
+
+        experienceVal = (pointer->experience_type * yearsWorked);
+        rating += experienceVal;
+    }
+    
+
+    if (hasRefferal) {
+        rating += 10;
+    }
+    if (projectCount == 0) {
+        rating -= 5;
+    } else {
+        rating += projectCount * 5;
+    }
+    if (rating < 0) {
+        return 0;
+    }    
+    else {
+        return rating;
+    }
 }
 
 /*
@@ -68,9 +131,25 @@ int calculateRating(struct Application *app) {
 * so you must iterate through to find the most recent experience
 */
 int isOverqualified(struct Application *app, enum ExperienceType role) {
-    UNUSED(app);
-    UNUSED(role);
-    return INCOMPLETE;
+    if (app == NULL) {
+        return ERROR;
+    }
+    
+    struct Experience *pointer;
+    
+    for (int i = 0; i < MAX_EXPER_LEN; i++) {
+        pointer = &app->experiences[i];
+        role = &pointer;
+
+        
+    }
+
+    if (pointer->experience_type == CEO) {
+        return SUCCESS;
+    }
+    else {
+        return FAILURE;
+        }
 }
 
 /*
@@ -95,13 +174,28 @@ int makeDecision(struct Application *app, int min_rating, enum ExperienceType ro
 * Must find application with given first and last name, if no such application exists, return FAILURE
 */
 int addExperience(const char *first_name, const char *last_name, const char *company_name, int start_year, int end_year, enum ExperienceType experience_type) {
-    UNUSED(first_name);
-    UNUSED(last_name);
-    UNUSED(company_name);
-    UNUSED(start_year);
-    UNUSED(end_year);
-    UNUSED(experience_type);
-    return INCOMPLETE;
+    struct Experience *pointer;
+    struct Application *app; // need to init app
+
+    if () {
+
+    }
+    if (experience_type < INTERN || experience_type > CEO) {
+        return ERROR;
+    }
+
+    for (int i = 0; i < app_count; i++) {
+        
+        char firstName = app->first_name[i];
+        char lastName = app->last_name[i];
+        
+        if (firstName == *first_name && lastName == *last_name) {
+            app->experiences[i] = experience_type;
+        }
+        else {
+            return FAILURE;
+        }
+    }
 }
 
 /*
@@ -186,6 +280,9 @@ int sortByRating(void) {
  * (Note: This function will not be strictly autograded).
  */
 void printApplication(struct Application *app) {
-    UNUSED(app);
-    return;
+  
+    printf("This is the applicant's name:%s %s\n", app->first_name, app->last_name);
+    printf("This is the applicant's age: %d\n", app->age);
+    printf("This is the applicant's project count:%d\n", app->project_count);
+    
 }
