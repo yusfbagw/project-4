@@ -80,7 +80,7 @@ void createLetterBoxed(char* strings[], int length) {
             break;
         }
 
-        strings[j] = strings[1];
+        strings[j] = strings[i];
 
         i = j;
     }
@@ -90,10 +90,10 @@ void createLetterBoxed(char* strings[], int length) {
 // Adds +3 for a correct letter in the wrong position
 // Adds +10 for a correct letter in the correct position
 int wordleScore(char guess[], char solution[]) {
-    
+    int true = 1;
     int score = 0;
     int length = 0;
-    while(1) {
+    while(true) {
         if (strlen(guess) != 5 || strlen(solution) != 5) {
             return FAILURE;
         }

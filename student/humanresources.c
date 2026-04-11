@@ -92,7 +92,7 @@ int calculateRating(struct Application *app) {
         pointer = &app->experiences[i];
 
         if (pointer->company_name[0] == '\0') {
-            continue;
+            continue; 
         }
 
         endYear = pointer->end_year;
@@ -141,7 +141,7 @@ int isOverqualified(struct Application *app, enum ExperienceType role) {
     
     
     for (int i = 0; i < MAX_EXPER_LEN; i++) {
-        if (app->experiences[i].start_year == '\0') {
+        if (app->experiences[i].start_year == 0) {
             continue; //Making sure that we don't have any garbage data
         }
 
@@ -203,26 +203,25 @@ int addExperience(const char *first_name, const char *last_name, const char *com
     struct Experience *pointer;
     struct Application *app; // need to init app
 
-    int noway = 0;
+    if (first_name == NULL || last_name == NULL || company_name == NULL) {
+        return ERROR;
+    }
+    if (experience_type < INTERN || experience_type > CEO) {
+        return ERROR;
+    }
+    if (start_year > end_year ) {
+        return ERROR;
+    }
     if (strlen(first_name) == 0 || strlen(last_name) == 0 || strlen(company_name) == 0) {
         return ERROR;
     }
     if (strlen(company_name) >= MAX_COMPANY_LEN) {
         return ERROR;
     }
-    if (experience_type < INTERN || experience_type > CEO) {
-        return ERROR;
-    }
-    if (first_name == NULL || last_name == NULL || company_name == NULL) {
-        return ERROR;
-    }
-    if (start_year > end_year ) {
-        return ERROR;
-    }
-
 
     for (int i = 0; i < app_count; i++) {
         if (strcmp(applications[i].first_name, first_name) == 0 && strcmp(applications[i].last_name, last_name) == 0) {
+            
             for (int j = 0; j < MAX_EXPER_LEN; j++) {
                 if (applications[i].experiences[j].start_year == 0) {
                     strcpy(applications[i].experiences[j].company_name, company_name);
@@ -390,27 +389,47 @@ int searchByResumeGap(char results[][MAX_APPLICANT_NAME_LEN * 2 + 2]) {
     }
 
     for (int i = 0; i < app_count; i++) {
-        
-        for (int j = 0; j < MAX_EXPER_LEN; j++) {
-            int startYear = applications[i].experiences[j].start_year;
-            int endYear = applications[i].experiences[j].end_year;
-            int nextStartYear = applications[i].experiences[j + 1].start_year;
-            if (startYear == 0 || endYear == 0) {
-                break; 
+            int startYears[MAX_EXPER_LEN];
+            int endYears[MAX_EXPER_LEN];
+            int count = 0;
+
+            for (int j = 0; j < MAX_EXPER_LEN; j++) {
+                if (applications[i].experiences[j].start_year == 0) {
+                    continue; //Making sure that we don't have any garbage data
+                }
+                startYears[count] = applications[i].experiences[j].start_year;
+                endYears[count] = applications[i].experiences[j].end_year;
+                count++;
+            }
+            
+            for (int a = 0; a < count - 1; a++) {
+                for (int b = a + 1; b < count; b++) {
+                    if (endYears[a] > endYears[b]) {
+                        int tmp = endYears[a]; endYears[a] = endYears[b]; endYears[b] = tmp;
+                        tmp = startYears[a]; startYears[a] = startYears[b]; startYears[b] = tmp;
+                    }
+                }
             }
 
-            if (nextStartYear - endYear >= 3) {
+            int hasGap = 0;
+            for (int j = 0; j < count - 1; j++) {
+                if (startYears[j + 1] - endYears[j] >= 3) {
+                    hasGap = 1;
+                    break;
+                }
+            }
+
+            if (hasGap) {
                 strcpy(results[numPeopleGap], applications[i].first_name);
                 strcat(results[numPeopleGap], " ");
                 strcat(results[numPeopleGap], applications[i].last_name);
 
                 numPeopleGap++;
-                break;
             }
         }
+        return numPeopleGap;
     }
 
-}
 
 /*
 * This function sorts the applications array
